@@ -969,6 +969,9 @@ public class CCLiveUtilitiesConfig {
     @SerialEntry
     public boolean powerCrystalTexturesEnabled = true; // Bundled custom textures for power crystals (Machtkristalle)
 
+    @SerialEntry
+    public boolean starforgedAnimationEnabled = true; // Big HUD + particle animation on the smithing state "Sternengeschmiedet"
+
     // Material Tracker Settings
     @SerialEntry
     public boolean materialTrackerEnabled = true;
@@ -2197,6 +2200,12 @@ public class CCLiveUtilitiesConfig {
                                         .name(Component.literal("Talismanfragment Animation"))
                                         .description(OptionDescription.of(Component.literal("Spielt eine Fund-Animation (Lichtstrahlen, Funken, Klang und Partikel) ab, wenn ein Talismanfragment gefunden wird")))
                                         .binding(true, () -> HANDLER.instance().fragmentDropAnimationEnabled, newVal -> HANDLER.instance().fragmentDropAnimationEnabled = newVal)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build())
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.literal("Sternengeschmiedet Animation"))
+                                        .description(OptionDescription.of(Component.literal("Spielt eine große Animation ab, wenn ein Item beim Schmied den Schmiedezustand Sternengeschmiedet erhält")))
+                                        .binding(true, () -> HANDLER.instance().starforgedAnimationEnabled, newVal -> HANDLER.instance().starforgedAnimationEnabled = newVal)
                                         .controller(TickBoxControllerBuilder::create)
                                         .build())
                                 .build())

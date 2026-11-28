@@ -169,6 +169,12 @@ public class CCLiveCommands {
                 // Feeds the real chat messages through the detection (uses the last clicked blueprint)
                 .then(literal("chat")
                     .executes(CCLiveCommands::testStarforgedChat)))
+
+            // Lester phone call test; "status" shows the craft counter
+            .then(literal("lester_call_test")
+                .executes(CCLiveCommands::testLesterCall)
+                .then(literal("status")
+                    .executes(CCLiveCommands::lesterCallStatus)))
             
             .then(literal("mod")
                 .requires(source -> StaffClientAccess.isStaffCommandVisible())
@@ -360,6 +366,18 @@ public class CCLiveCommands {
             return 0;
         }
         context.getSource().sendFeedback(Component.literal("§aTalismanfragment-Animation abgespielt: §f" + played));
+        return 1;
+    }
+
+    private static int testLesterCall(CommandContext<FabricClientCommandSource> context) {
+        net.felix.utilities.Overall.starforged.LesterCallUtility.playTest();
+        context.getSource().sendFeedback(Component.literal("§bLester-Anruf abgespielt"));
+        return 1;
+    }
+
+    private static int lesterCallStatus(CommandContext<FabricClientCommandSource> context) {
+        context.getSource().sendFeedback(Component.literal("§b"
+                + net.felix.utilities.Overall.starforged.LesterCallUtility.statusText()));
         return 1;
     }
 
@@ -708,6 +726,7 @@ public class CCLiveCommands {
         context.getSource().sendFeedback(Component.literal("§7/cclive fragment_animation_test [anhänger] §f- Talismanfragment-Animation testen"));
         context.getSource().sendFeedback(Component.literal("§7/cclive starforged_animation_test §f- Sternengeschmiedet-Animation testen (zeigt das Item in der Hand)"));
         context.getSource().sendFeedback(Component.literal("§7/cclive starforged_animation_test chat §f- Simuliert 10x-Craft + Sternengeschmiedet im Chat"));
+        context.getSource().sendFeedback(Component.literal("§7/cclive lester_call_test §f- Lester-Anruf testen (§7status§f zeigt den Zähler)"));
         context.getSource().sendFeedback(Component.literal(""));
         
         // Debug Commands nur anzeigen wenn Debug aktiviert ist

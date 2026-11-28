@@ -56,7 +56,7 @@ public class SmithSkillCollector implements DataCollector {
         SmithSkillUpload.getInstance().submit(stand.level(), stand.xp());
     }
 
-    static List<String> tabLines(Minecraft client) {
+    public static List<String> tabLines(Minecraft client) {
         List<String> lines = new ArrayList<>();
         if (client == null || client.getConnection() == null) {
             return lines;

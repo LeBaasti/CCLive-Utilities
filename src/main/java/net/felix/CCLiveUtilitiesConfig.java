@@ -972,6 +972,12 @@ public class CCLiveUtilitiesConfig {
     @SerialEntry
     public boolean starforgedAnimationEnabled = true; // Big HUD + particle animation on the smithing state "Sternengeschmiedet"
 
+    @SerialEntry
+    public boolean lesterCallAnimationEnabled = true; // Fun phone call after 1000 crafts (score >= 80, smith level 100) without "Sternengeschmiedet"
+
+    @SerialEntry
+    public int lesterCallVolume = 100; // Volume of the Lester call (voice and ringtone) in percent, 0 = muted
+
     // Material Tracker Settings
     @SerialEntry
     public boolean materialTrackerEnabled = true;
@@ -2207,6 +2213,18 @@ public class CCLiveUtilitiesConfig {
                                         .description(OptionDescription.of(Component.literal("Spielt eine große Animation ab, wenn ein Item beim Schmied den Schmiedezustand Sternengeschmiedet erhält")))
                                         .binding(true, () -> HANDLER.instance().starforgedAnimationEnabled, newVal -> HANDLER.instance().starforgedAnimationEnabled = newVal)
                                         .controller(TickBoxControllerBuilder::create)
+                                        .build())
+                                .option(Option.<Boolean>createBuilder()
+                                        .name(Component.literal("Lester Anruf"))
+                                        .description(OptionDescription.of(Component.literal("Zählt Crafts mit Item Score ab 80 bei Schmiedelevel 100. Nach 1000 Crafts ohne Sternengeschmiedet ruft Lester an (ESC überspringt)")))
+                                        .binding(true, () -> HANDLER.instance().lesterCallAnimationEnabled, newVal -> HANDLER.instance().lesterCallAnimationEnabled = newVal)
+                                        .controller(TickBoxControllerBuilder::create)
+                                        .build())
+                                .option(Option.<Integer>createBuilder()
+                                        .name(Component.literal("Lester Anruf Lautstärke"))
+                                        .description(OptionDescription.of(Component.literal("Lautstärke von Lesters Stimme und dem Klingelton in Prozent (0 = stumm)")))
+                                        .binding(100, () -> HANDLER.instance().lesterCallVolume, newVal -> HANDLER.instance().lesterCallVolume = newVal)
+                                        .controller(slider -> IntegerSliderControllerBuilder.create(slider).range(0, 100).step(5))
                                         .build())
                                 .build())
                         .group(OptionGroup.createBuilder()

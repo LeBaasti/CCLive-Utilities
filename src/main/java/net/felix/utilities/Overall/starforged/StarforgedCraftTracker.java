@@ -25,7 +25,7 @@ final class StarforgedCraftTracker {
 	private static final Pattern CRAFTED_PATTERN = Pattern.compile(
 			"^\\[Legend\\]\\s*(.+?)\\s+erfolgreich hergestellt!");
 	private static final Pattern BATCH_PATTERN = Pattern.compile(
-			"^\\[Legend\\]\\s*Du hast den Bauplan erfolgreich \\d+x gebaut!");
+			"^\\[Legend\\]\\s*Du hast den Bauplan erfolgreich (\\d+)x gebaut!");
 	private static final Pattern CRAFT_ACTION_PATTERN = Pattern.compile(
 			"\\[Linksklick\\]\\s*:?\\s*Herstellen", Pattern.CASE_INSENSITIVE);
 	private static final String[] BLUEPRINT_INVENTORY_TITLES = {
@@ -70,6 +70,26 @@ final class StarforgedCraftTracker {
 		}
 		Matcher matcher = CRAFTED_PATTERN.matcher(text);
 		return matcher.find() ? matcher.group(1).trim() : null;
+	}
+
+	/** Number of items a craft message stands for: 1 for a single craft, N for a batch, 0 for other lines. */
+	static int craftCount(String raw) {
+		if (craftedName(raw) != null) {
+			return 1;
+		}
+		String text = fromLegend(raw);
+		if (text == null) {
+			return 0;
+		}
+		Matcher matcher = BATCH_PATTERN.matcher(text);
+		if (!matcher.find()) {
+			return 0;
+		}
+		try {
+			return Math.max(0, Integer.parseInt(matcher.group(1)));
+		} catch (NumberFormatException e) {
+			return 0;
+		}
 	}
 
 	static boolean isBlueprintBatch(String raw) {

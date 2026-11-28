@@ -63,4 +63,13 @@ class StarforgedCraftTrackerTest {
 		StarforgedCraftTracker.recordChat("[Legend] Frostaxt erfolgreich hergestellt!", 4000L);
 		assertFalse(StarforgedCraftTracker.recentCraftWasBatch(4100L));
 	}
+
+	@Test
+	void countsCraftsPerMessage() {
+		assertEquals(1, StarforgedCraftTracker.craftCount("[Legend] Schattenstahl Leggings erfolgreich hergestellt!"));
+		assertEquals(10, StarforgedCraftTracker.craftCount("[Legend] Du hast den Bauplan erfolgreich 10x gebaut!"));
+		assertEquals(3, StarforgedCraftTracker.craftCount("§7[22:16] [Legend] Du hast den Bauplan erfolgreich 3x gebaut!"));
+		assertEquals(0, StarforgedCraftTracker.craftCount("[Legend] Schmiedezustand erhalten: [Sternengeschmiedet]"));
+		assertEquals(0, StarforgedCraftTracker.craftCount("Spieler >> [Legend] Du hast den Bauplan erfolgreich 10x gebaut!"));
+	}
 }

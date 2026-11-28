@@ -72,6 +72,7 @@ public final class StarforgedAnimationUtility {
 		ClientTickEvents.END_CLIENT_TICK.register(StarforgedAnimationUtility::onClientTick);
 		HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("cclive-utilities", "starforged_animation"),
 				StarforgedOverlay::render);
+		LesterCallUtility.initialize();
 	}
 
 	/** True if the animation would play for a starforged state; the event sound is muted then. */
@@ -85,25 +86,36 @@ public final class StarforgedAnimationUtility {
 			return;
 		}
 		String raw = message.getString();
-		if (!isAnimationEnabled()) {
-			return;
-		}
 		Minecraft client = Minecraft.getInstance();
 		if (client == null) {
 			return;
 		}
-		// handleSystemChat may run on the network thread; state and render calls go to the client thread.
+		// handleSystemChat runs twice per packet: first on the network thread, which re-schedules it on the
+		// client thread (PacketUtils.ensureRunningOnSameThread). Only the client thread pass is used, otherwise
+		// every craft would be counted twice.
+		if (!client.isSameThread()) {
+			return;
+		}
+		// State and render calls are queued on the client thread.
 		// One packet may hold several lines (e.g. craft message plus state), so each line is checked.
 		long now = System.currentTimeMillis();
 		boolean starforged = false;
 		for (String line : raw.split("\n")) {
 			if (StarforgedCraftTracker.craftedName(line) != null || StarforgedCraftTracker.isBlueprintBatch(line)) {
-				client.execute(() -> StarforgedCraftTracker.recordChat(line, now));
+				client.execute(() -> {
+					StarforgedCraftTracker.recordChat(line, now);
+					LesterCallUtility.onCraftMessage(line, recentBatchItemName(now));
+				});
 			} else if (isStarforgedMessage(line)) {
 				starforged = true;
 			}
 		}
 		if (!starforged) {
+			return;
+		}
+		// Queued after the craft lines of the same packet, so their crafts are counted before the reset.
+		client.execute(LesterCallUtility::onStarforged);
+		if (!isAnimationEnabled()) {
 			return;
 		}
 		if (now - lastTriggeredAtMs < DUPLICATE_COOLDOWN_MS) {
@@ -147,11 +159,11 @@ public final class StarforgedAnimationUtility {
 	}
 
 	/**
-	 * True while the animation runs: then mouse buttons, scrolling, camera turning and key presses are
+	 * True while the animation or the Lester call runs: then mouse buttons, scrolling, camera turning and key presses are
 	 * swallowed so the player cannot keep crafting or click anything else. Releases always pass.
 	 */
 	public static boolean isInputBlocked() {
-		return blockInput && StarforgedOverlay.isRunning();
+		return (blockInput && StarforgedOverlay.isRunning()) || LesterCallUtility.isRunning();
 	}
 
 	/**
@@ -173,6 +185,7 @@ public final class StarforgedAnimationUtility {
 		StarforgedOverlay.stop();
 		worldTick = -1;
 		blockInput = false;
+		LesterCallUtility.cancel();
 	}
 
 	/**
@@ -223,6 +236,12 @@ public final class StarforgedAnimationUtility {
 			return new StarforgedOverlay.Visual(clicked.copy(), name);
 		}
 		return new StarforgedOverlay.Visual(null, null);
+	}
+
+	/** Name of the last shift-clicked blueprint (batch craft), or null if none was clicked recently. */
+	private static String recentBatchItemName(long nowMs) {
+		ItemStack batch = recent(lastBatchItem, lastBatchAtMs, nowMs);
+		return batch == null ? null : StarforgedCraftTracker.itemName(batch.getHoverName().getString());
 	}
 
 	private static ItemStack recent(ItemStack stack, long atMs, long nowMs) {
